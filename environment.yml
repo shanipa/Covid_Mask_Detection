@@ -1,7 +1,10 @@
 name: hw2_env
+channels:
+  - pytorch
+  - defaults
 dependencies:
   - python 3.8
-  - pytorch
+  - pytorch = 1.9.0
   - torchvision
   - pip
   - pip:
@@ -9,3 +12,6 @@ dependencies:
     - matplotlib
     - tqdm
     - pycocotools
+    - PyYAML
+    - python-box
+    - clearml
