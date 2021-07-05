@@ -66,7 +66,6 @@ def train(args, cfg_dict):
     optimizer, lr_scheduler = get_optimizer_and_scheduler(cfg.optimizer, params)
 
     # loading the datasets
-    # TODO: add get transformed once figured out
 
     train_dataset = MasksDataset("train")
     test_dataset = MasksDataset("test")
@@ -89,9 +88,6 @@ def train(args, cfg_dict):
         # update the learning rate
         lr_scheduler.step()
 
-        # saftey first. TODO: delete
-        if epoch==0 and cfg.log_results:
-            save_checkpoint(log_dir_path, epoch, model, best_score)
 
         # evaluate on the train dataset
         a, curr_acc, curr_iou = evaluate_results(model, train_dataloader, device=device)
@@ -103,7 +99,7 @@ def train(args, cfg_dict):
             logger.report_scalar(title="Loss",
                                  series="Train",
                                  iteration=epoch,
-                                 value=loss_sum / len(train_dataset))
+                                 value=loss_sum)
 
             logger.report_scalar(title="Accuracy",
                                  series="Train",
@@ -128,7 +124,6 @@ def train(args, cfg_dict):
         combined_score = (curr_acc + curr_iou)/2
 
         if cfg.log_results:
-            print("Test loss:", loss_sum / len(train_dataset))
             print("Test acc:", curr_acc, "\tTest iou:", curr_iou, "\tTest score:", combined_score)
 
             logger.report_scalar(title="Accuracy",
@@ -171,10 +166,3 @@ if __name__=='__main__':
     args = parser.parse_args()
 
     trained_model = train(args, cfg_dict)
-
-
-
-
-
-
-
