@@ -76,20 +76,11 @@ def random_bbox_predict(bbox):
 
 def pad_image(im, desired_size=224):
     old_size = im.size
-    #     old_size = cv_im.shape[:2]
-
     delta_w = desired_size - old_size[1]
     delta_h = desired_size - old_size[0]
-    #     padding = (delta_w//2, delta_h//2, delta_w-(delta_w//2), delta_h-(delta_h//2))
     padding = (0, 0, delta_h, delta_w)
     new_im = ImageOps.expand(im, padding)
 
-    #     top, bottom = 0, delta_h
-    #     left, right = 0, delta_w
-
-    #     color = [0, 0, 0]
-    #     new_im = cv2.copyMakeBorder(cv_im, top, bottom, left, right, cv2.BORDER_CONSTANT,
-    #         value=color)
     return new_im
 
 
@@ -147,4 +138,3 @@ def save_checkpoint(path, epoch, model, best_score, grid=None):
     # saving the model
     model_path = os.path.join(check_point_path, 'model.pth')
     torch.save(model.state_dict(), model_path)
-
