@@ -1,12 +1,13 @@
-log_results: True
-print_freq: 50
-save_checkpoint: True
+log_results: False
+print_freq: 100
+save_checkpoint: False
 batch_size: 32
 num_workers: 4
-epochs: 10
+epochs: 15
 
 model:
   pretrain: False
+  model_name: resnet
   num_classes: 3
   max_size: 224
 
@@ -16,6 +17,5 @@ optimizer:
   weight_decay: 0.0006
   step_size: 3
   gamma: 0.1
-
 
 
