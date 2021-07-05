@@ -82,7 +82,13 @@ class MasksDataset(torch.utils.data.Dataset):
 
 
 def define_model(cfg):
-    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=cfg.pretrain, pretrained_backbone=cfg.pretrain,
+    if cfg.model_name == "mobilenet":
+        model = torchvision.models.detection.fasterrcnn_mobilenet_v3_large_fpn(pretrained=cfg.pretrain,
+                                                                     pretrained_backbone=cfg.pretrain,
+                                                                     min_size=224, max_size=224,
+                                                                     box_detections_per_img=1)
+    else:
+        model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=cfg.pretrain, pretrained_backbone=cfg.pretrain,
                                                                  min_size = 224, max_size = 224,
                                                                  box_detections_per_img=1)
 
@@ -90,9 +96,3 @@ def define_model(cfg):
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, cfg.num_classes)
 
     return model
-
-
-
-
-
-
