@@ -72,7 +72,7 @@ def _get_iou_types(model):
 @torch.no_grad()
 def evaluate_results(model, data_loader, device):
     n_threads = torch.get_num_threads()
-    cpu_device = device
+    cpu_device = torch.device("cpu")
     model.eval()
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = 'Test:'
@@ -98,21 +98,17 @@ def evaluate_results(model, data_loader, device):
 
         outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
         all_outputs += outputs
-        all_targets += [{k: v.to(cpu_device) for k, v in t.items()} for t in targets]
-        # for t in outputs:
-        #     all_outputs['labels'].append(t['labels'])
-        #     all_outputs['boxes'].append(t['boxes'])
-        print(all_outputs)
-        print(all_targets)
+        targets = [{k: v.to(cpu_device) for k, v in t.items()} for t in targets]
+        all_targets += targets
 
         model_time = time.time() - model_time
 
         res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
-        print(res)
         evaluator_time = time.time()
         coco_evaluator.update(res)
         evaluator_time = time.time() - evaluator_time
         metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
+
 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
@@ -129,14 +125,22 @@ def evaluate_results(model, data_loader, device):
     total_iou = 0
     for prediction, ground_truth in zip(all_outputs, all_targets):
 
-        if prediction['labels'] == ground_truth['labels']:
-            total_acc += 1
+        try:
 
-        box_pred = prediction['boxes'][0]
-        box_pred = [box_pred[0], box_pred[1], box_pred[2]-box_pred[0], box_pred[3]-box_pred[1]]
-        box_true = ground_truth['boxes'][0].tolist()
-        box_true = [box_true[0], box_true[1], box_true[2]-box_true[0], box_true[3]-box_true[1]]
-        total_iou += calc_iou(box_pred, box_true)
+            if prediction['labels'] == ground_truth['labels']:
+                total_acc += 1
+
+            box_pred = prediction['boxes'][0]
+            box_pred = [box_pred[0], box_pred[1], box_pred[2]-box_pred[0], box_pred[3]-box_pred[1]]
+            box_true = ground_truth['boxes'][0].tolist()
+            box_true = [box_true[0], box_true[1], box_true[2]-box_true[0], box_true[3]-box_true[1]]
+            total_iou += calc_iou(box_pred, box_true)
+
+        except Exception as e:
+            print("Can't Evaluate. err:", e)
+            print(prediction)
+            print(ground_truth)
+
 
     total_acc /= len(all_outputs)
     total_iou /= len(all_outputs)

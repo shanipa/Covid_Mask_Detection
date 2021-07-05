@@ -84,10 +84,14 @@ def train(args, cfg_dict):
 
     for epoch in range(cfg.epochs):
         loss_sum = 0
-        # loss_sum = train_one_epoch(model, optimizer, train_dataloader, device, epoch, print_freq=cfg.print_freq)
-        # res_dict["train_loss"].append(loss_sum / len(train_dataloader))
-        # # update the learning rate
-        # lr_scheduler.step()
+        loss_sum = train_one_epoch(model, optimizer, train_dataloader, device, epoch, print_freq=cfg.print_freq)
+        res_dict["train_loss"].append(loss_sum / len(train_dataloader))
+        # update the learning rate
+        lr_scheduler.step()
+
+        # saftey first. TODO: delete
+        if epoch==0 and cfg.log_results:
+            save_checkpoint(log_dir_path, epoch, model, best_score)
 
         # evaluate on the train dataset
         a, curr_acc, curr_iou = evaluate_results(model, train_dataloader, device=device)
