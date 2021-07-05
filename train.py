@@ -85,7 +85,7 @@ def train(args, cfg_dict):
     for epoch in range(cfg.epochs):
         loss_sum = 0
         loss_sum = train_one_epoch(model, optimizer, train_dataloader, device, epoch, print_freq=cfg.print_freq)
-        res_dict["train_loss"].append(loss_sum / len(train_dataloader))
+        res_dict["train_loss"].append(loss_sum)
         # update the learning rate
         lr_scheduler.step()
 
@@ -98,7 +98,7 @@ def train(args, cfg_dict):
         combined_score = (curr_acc + curr_iou)/2
 
         if cfg.log_results:
-            print("Train loss:", loss_sum / len(train_dataset))
+            print("Train loss:", loss_sum)
             print("Train acc:", curr_acc, "\tTrain iou:", curr_iou, "\tTrain score:", combined_score)
             logger.report_scalar(title="Loss",
                                  series="Train",
@@ -128,8 +128,8 @@ def train(args, cfg_dict):
         combined_score = (curr_acc + curr_iou)/2
 
         if cfg.log_results:
-            print("Train loss:", loss_sum / len(train_dataset))
-            print("Train acc:", curr_acc, "\tTrain iou:", curr_iou, "\tTrain score:", combined_score)
+            print("Test loss:", loss_sum / len(train_dataset))
+            print("Test acc:", curr_acc, "\tTest iou:", curr_iou, "\tTest score:", combined_score)
 
             logger.report_scalar(title="Accuracy",
                                  series="Test",
