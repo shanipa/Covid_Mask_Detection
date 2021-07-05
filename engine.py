@@ -72,9 +72,7 @@ def _get_iou_types(model):
 @torch.no_grad()
 def evaluate_results(model, data_loader, device):
     n_threads = torch.get_num_threads()
-    # FIXME remove this and make paste_masks_in_image run on the GPU
-    torch.set_num_threads(1)
-    cpu_device = torch.device("cpu")
+    cpu_device = device
     model.eval()
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = 'Test:'
@@ -95,7 +93,6 @@ def evaluate_results(model, data_loader, device):
         #     all_targets['labels'].append(t['labels'])
         #     all_targets['boxes'].append(t['boxes'])
 
-        torch.cuda.synchronize()
         model_time = time.time()
         outputs = model(image)
 
@@ -105,10 +102,13 @@ def evaluate_results(model, data_loader, device):
         # for t in outputs:
         #     all_outputs['labels'].append(t['labels'])
         #     all_outputs['boxes'].append(t['boxes'])
+        print(all_outputs)
+        print(all_targets)
 
         model_time = time.time() - model_time
 
         res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
+        print(res)
         evaluator_time = time.time()
         coco_evaluator.update(res)
         evaluator_time = time.time() - evaluator_time

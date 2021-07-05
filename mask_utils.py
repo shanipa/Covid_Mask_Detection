@@ -12,26 +12,6 @@ from tqdm import tqdm
 import transforms as T
 
 
-def parse_images_and_bboxes(image_dir):
-    """
-    Parse a directory with images.
-    :param image_dir: Path to directory with images.
-    :return: A list with (filename, image_id, bbox, proper_mask) for every image in the image_dir.
-    """
-    example_filenames = sorted(os.listdir(image_dir))
-    data = []
-    for filename in example_filenames:
-        if filename.endswith(".jpg"):
-            image_id, bbox, proper_mask = filename.strip(".jpg").split("__")
-            bbox = eval(bbox)
-            if any(cord <= 0 for cord in bbox):
-                print(f"{filename} skipped")
-                continue
-            proper_mask = 1 if proper_mask.lower() == "true" else 0
-            data.append((filename, image_id, bbox, proper_mask))
-    print("data length:", len(data))
-    return data
-
 
 def calc_iou(bbox_a, bbox_b):
     """.to(device)

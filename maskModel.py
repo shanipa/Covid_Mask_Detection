@@ -9,7 +9,7 @@ import yaml
 from box import Box
 import torchvision
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from mask_utils import parse_images_and_bboxes, pad_image, get_transform
+from mask_utils import pad_image, get_transform
 
 
 class MasksDataset(torch.utils.data.Dataset):
@@ -21,17 +21,46 @@ class MasksDataset(torch.utils.data.Dataset):
         self.transforms = get_transform(is_train)
         # load all image files, sorting them to
         # ensure that they are aligned
-        self.data = parse_images_and_bboxes(root)
+        self.data = self.parse_images_and_bboxes(root)
+
+
+    def parse_images_and_bboxes(self, image_dir):
+        """
+        Parse a directory with images.
+        :param image_dir: Path to directory with images.
+        :return: A list with (filename, image_id, bbox, proper_mask) for every image in the image_dir.
+        """
+        example_filenames = sorted(os.listdir(image_dir))
+        data = []
+        for filename in example_filenames:
+            if filename.endswith(".jpg"):
+                image_id, bbox, proper_mask = filename.strip(".jpg").split("__")
+                bbox = eval(bbox)
+                if any(cord <= 0 for cord in bbox):
+                    print(f"{filename} skipped")
+                    continue
+                proper_mask = 1 if proper_mask.lower() == "true" else 0
+
+                img_path = os.path.join(image_dir, filename)
+
+                img = pad_image(Image.open(img_path).convert("RGB"))
+
+                data.append((filename, image_id, bbox, proper_mask, img))
+
+        print("data length:", len(data))
+        return data
+
 
     def __getitem__(self, idx):
         # load images and masks
-        img_path = os.path.join(self.root, self.data[idx][0])
-        img = pad_image(Image.open(img_path).convert("RGB"))
+
+        sample = self.data[idx]
+        img = sample[4]
 
         image_id = torch.tensor([idx])
-        box = self.data[idx][2]
+        box = sample[2]
         box = [box[0], box[1], box[0] + box[2], box[1] + box[3]]
-        labels = self.data[idx][3]
+        labels = sample[3]
         labels = torch.as_tensor([labels, ], dtype=torch.int64) + 1
         area = torch.tensor([(box[3] - box[1]) * (box[2] - box[0]), ])
         iscrowd = torch.zeros((1,), dtype=torch.int8)
@@ -54,6 +83,7 @@ class MasksDataset(torch.utils.data.Dataset):
 
 def define_model(cfg):
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=cfg.pretrain, pretrained_backbone=cfg.pretrain,
+                                                                 min_size = 224, max_size = 224,
                                                                  box_detections_per_img=1)
 
     in_features = model.roi_heads.box_predictor.cls_score.in_features

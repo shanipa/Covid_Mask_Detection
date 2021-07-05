@@ -9,7 +9,7 @@ import yaml
 from box import Box
 import torchvision
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from mask_utils import parse_images_and_bboxes, pad_image, save_checkpoint
+from mask_utils import pad_image, save_checkpoint
 from torch.utils.data import DataLoader
 from maskModel import MasksDataset, define_model
 from engine import train_one_epoch, evaluate, evaluate_results
@@ -19,7 +19,7 @@ from clearml import Task
 def get_optimizer_and_scheduler(cfg, model_params):
 
     if cfg.optimizer_name == 'Adam':
-        optimizer = torch.optim.Adam(model_params, lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
+        optimizer = torch.optim.Adam(model_params, lr=cfg.learning_rate)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=cfg.step_size, gamma=cfg.gamma)
         return optimizer, lr_scheduler
 
@@ -84,10 +84,10 @@ def train(args, cfg_dict):
 
     for epoch in range(cfg.epochs):
         loss_sum = 0
-        loss_sum = train_one_epoch(model, optimizer, train_dataloader, device, epoch, print_freq=cfg.print_freq)
-        res_dict["train_loss"].append(loss_sum / len(train_dataloader))
-        # update the learning rate
-        lr_scheduler.step()
+        # loss_sum = train_one_epoch(model, optimizer, train_dataloader, device, epoch, print_freq=cfg.print_freq)
+        # res_dict["train_loss"].append(loss_sum / len(train_dataloader))
+        # # update the learning rate
+        # lr_scheduler.step()
 
         # evaluate on the train dataset
         a, curr_acc, curr_iou = evaluate_results(model, train_dataloader, device=device)
